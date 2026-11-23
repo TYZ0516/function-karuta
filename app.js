@@ -12,6 +12,10 @@ const save=()=>{try{localStorage.setItem('fkaruta',JSON.stringify(S))}catch(e){}
 const SPEEDS=[{n:'烏龜',t:16000,acc:.7},{n:'兔子',t:9000,acc:.85},{n:'獵豹',t:5000,acc:.93}];
 const CLASS_LIMIT={1:20,2:30,3:60,4:30,5:45}; /* 全班模式每題秒數；一般式要配方，給 60 秒 */
 const TOTAL=10;
+const NAME_MAX=8; /* 暱稱最多 8 個字 */
+const cleanName=v=>Array.from(String(v||'').replace(/\s+/g,' ').trim()).slice(0,NAME_MAX).join('');
+/* 輸入框：超過字數自動截掉，旁邊顯示 3/8 */
+function bindNameInput(inp,counter){const f=()=>{const a=Array.from(inp.value);if(a.length>NAME_MAX)inp.value=a.slice(0,NAME_MAX).join('');if(counter)counter.textContent=`${Array.from(inp.value.trim()).length}/${NAME_MAX}`};inp.addEventListener('input',f);f()}
 let G=null,timers=[],ticker=null;
 const later=(fn,ms)=>timers.push(setTimeout(fn,ms));
 const clearT=()=>{timers.forEach(clearTimeout);timers=[];if(ticker){clearInterval(ticker);ticker=null}};
@@ -207,7 +211,7 @@ function endLocal(){
 let O=null;
 const room=p=>`rooms/${O.code}${p?'/'+p:''}`;
 function leaveOnline(silent){
- if(!O)return;const o=O;O=null;clearT();
+ if(!O)return;const o=O;O=null;clearT();closePMenu();
  o.unsubs.forEach(u=>u());
  if(o.host)Net.remove(`rooms/${o.code}`).catch(()=>{});
  else Net.remove(`rooms/${o.code}/players/${Net.uid}`).catch(()=>{});
@@ -215,8 +219,8 @@ function leaveOnline(silent){
 }
 async function newCode(){for(let i=0;i<30;i++){const c=String(R(1000,9999));if(!(await Net.get(`rooms/${c}/meta`)))return c}throw new Error('找不到空的房間代碼')}
 function subscribe(code,host,type,render){
- O={code,host,type,render,unsubs:[],meta:null,game:null,players:{},scores:{},grabs:{},stats:{},sig:''};
- ['kicked','meta','game','players','scores','grabs','stats'].forEach(k=>O.unsubs.push(Net.on(`rooms/${code}/${k}`,v=>{
+ O={code,host,type,render,unsubs:[],meta:null,game:null,players:{},scores:{},grabs:{},stats:{},rename:{},sig:''};
+ ['kicked','rename','meta','game','players','scores','grabs','stats'].forEach(k=>O.unsubs.push(Net.on(`rooms/${code}/${k}`,v=>{
   if(!O)return;
   if(k==='kicked'&&v&&v[Net.uid]&&!O.host){O.unsubs.forEach(u=>u());O=null;clearT();toast('你已被老師移出房間');return home()}
   if(k==='meta'&&v===null&&O.meta&&!O.host){O.unsubs.forEach(u=>u());O=null;toast('房間已經關閉');return home()}
@@ -235,7 +239,7 @@ function grabOnline(ci){
  Net.set(room(`grabs/${O.game.qn}/${Net.uid}`),{ci,t:Net.TS}).catch(e=>toast('送出失敗：'+(e.message||e))).finally(()=>{if(O)O.pending=false});
  const q=curQ();if(O.type==='duel'&&q&&!q.cards[ci].ans)vibrate(120);
 }
-function signature(extra){return JSON.stringify([O.game,O.players,O.scores,O.grabs?.[O.game?.qn],extra])}
+function signature(extra){return JSON.stringify([O.game,O.players,O.scores,O.grabs?.[O.game?.qn],O.rename?.[Net.uid],extra])}
 
 /* 名字與代碼 */
 function nameScreen(kind,code=''){
@@ -243,13 +247,13 @@ function nameScreen(kind,code=''){
  $app.innerHTML=`<div class="scrollable"><button class="x-btn" id="back">← 返回</button>
  <h2 style="margin-top:18px">${kind==='duel'?'開一個 1 對 1 房間':'加入房間'}</h2>
  ${kind==='join'?`<div class="lbl">房間代碼（4 位數）</div><input id="code" inputmode="numeric" maxlength="4" value="${esc(code)}" autocomplete="off">`:''}
- <div class="lbl">你的暱稱（請勿輸入真實全名）</div><input id="name" maxlength="10" value="${esc(S.name)}" autocomplete="off">
+ <div class="lbl">你的暱稱（最多 ${NAME_MAX} 個字，請勿輸入真實全名）<span id="ncnt" style="float:right"></span></div><input id="name" maxlength="${NAME_MAX*2}" value="${esc(cleanName(S.name))}" autocomplete="off">
  ${kind==='duel'?`<p class="rules">關卡：${lvInfo(S.level).name}。開好房間後，把代碼給對手。</p>`:''}
  <button class="go" id="ok">${kind==='duel'?'開房間':'加入'}</button><p class="note" id="err" hidden></p></div>`;
- $('back').onclick=home;
+ $('back').onclick=home;bindNameInput($('name'),$('ncnt'));
  const err=m=>{$('err').hidden=false;$('err').textContent=m};
  $('ok').onclick=async()=>{
-  const name=$('name').value.trim();if(!name)return err('請先輸入暱稱');
+  const name=cleanName($('name').value);if(!name)return err('請先輸入暱稱');
   S.name=name;save();$('ok').disabled=true;
   try{
    if(kind==='duel')await createDuel(name);
@@ -373,14 +377,23 @@ async function createClass(){
  }catch(e){toast('開房失敗：'+(e.message||e))}
 }
 const joinURL=()=>location.origin+location.pathname+'?'+(Net.mode==='mock'?'mock=1&':'')+'room='+O.code;
-function boardHTML(n=8){const r=rankList();return r.length?`<ol class="board">${r.slice(0,n).map(x=>`<li data-kick="${x.pid}" class="${O.kickArm===x.pid?'arm':''}"><span>${esc(x.name)}${O.kickArm===x.pid?'　再點一次移出':''}</span>${x.score}</li>`).join('')}</ol><p class="res" style="font-size:13px">點名字可以移出不當暱稱的人</p>`:'<p class="res">還沒有人加入</p>'}
-/* 老師移出學生：點一下準備，3 秒內再點一次才真的移出 */
+function boardHTML(n=8){const r=rankList();return r.length?`<ol class="board">${r.slice(0,n).map(x=>`<li data-kick="${x.pid}"><span>${esc(x.name)}</span>${x.score}</li>`).join('')}</ol><p class="res" style="font-size:13px">點名字可以請他改名或移出</p>`:'<p class="res">還沒有人加入</p>'}
+/* 老師點學生名字：跳出選單，可以「請改名」（改完可以回來，分數保留）或「移出」（這個房間不能再進來） */
+function closePMenu(){const m=$('pmenu');if(m)m.remove()}
 function bindKick(){
- $app.querySelectorAll('[data-kick]').forEach(el=>el.onclick=()=>{
-  const pid=el.dataset.kick;
-  if(O.kickArm===pid){O.kickArm=null;Net.update(room(),{[`kicked/${pid}`]:true,[`players/${pid}`]:null});toast('已移出 '+playerName(pid))}
-  else{O.kickArm=pid;O.sig='';renderHost();clearTimeout(O.kickT);O.kickT=setTimeout(()=>{if(O&&O.kickArm===pid){O.kickArm=null;O.sig='';renderHost()}},3000)}
- });
+ $app.querySelectorAll('[data-kick]').forEach(el=>el.onclick=()=>openPMenu(el.dataset.kick));
+}
+function openPMenu(pid){
+ closePMenu();const name=playerName(pid),d=document.createElement('div');d.id='pmenu';
+ d.innerHTML=`<div class="pm-box"><div class="pm-name">${esc(name)}</div>
+ <button class="go" id="pmRename">✏️ 請改名<small>他換好名字就能回來，分數保留</small></button>
+ <button class="go bad" id="pmKick">🚫 移出<small>這個房間不能再進來</small></button>
+ <button class="go alt" id="pmCancel">取消</button></div>`;
+ document.body.appendChild(d);
+ d.onclick=e=>{if(e.target===d)closePMenu()};
+ $('pmCancel').onclick=closePMenu;
+ $('pmRename').onclick=()=>{closePMenu();if(!O)return;Net.update(room(),{[`rename/${pid}`]:Net.TS,[`players/${pid}`]:null});toast('已請 '+name+' 改名')};
+ $('pmKick').onclick=()=>{closePMenu();if(!O)return;Net.update(room(),{[`kicked/${pid}`]:true,[`players/${pid}`]:null});toast('已移出 '+name)};
 }
 function renderHost(){
  if(!O||!O.game||!O.meta)return;
@@ -389,7 +402,7 @@ function renderHost(){
  if(st==='lobby'){
   $app.innerHTML=`<div class="lobby-host"><div style="text-align:center"><div class="stat">用手機加入全班搶牌</div><div class="code">${O.code}</div><div id="qr"></div><div class="url">${esc(joinURL())}</div></div>
   <div><div class="stat">${lvInfo(O.meta.level).name}・${O.meta.total} 題${O.meta.slow?'・時間寬鬆':''}</div><div class="res" style="margin:6px 0">已加入 ${names.length} 人</div>
-  <div class="plist">${Object.entries(O.players||{}).map(([pid,p])=>`<span data-kick="${pid}" class="${O.kickArm===pid?'arm':''}">${esc(p.name)}${O.kickArm===pid?'　再點一次移出':''}</span>`).join('')}</div>${names.length?'<p class="res" style="font-size:13px">點名字可以移出不當暱稱的人</p>':''}
+  <div class="plist">${Object.entries(O.players||{}).map(([pid,p])=>`<span data-kick="${pid}">${esc(p.name)}</span>`).join('')}</div>${names.length?'<p class="res" style="font-size:13px">點名字可以請他改名或移出</p>':''}
   <button class="go" id="start" ${names.length?'':'disabled'}>開始</button><button class="go alt" id="quit">關閉房間</button></div></div>`;
   try{if(window.QRCode)new QRCode($('qr'),{text:joinURL(),width:220,height:220});else $('qr').remove()}catch(e){$('qr').remove()}
   $('start').onclick=hostNextQ;$('quit').onclick=()=>leaveOnline();bindKick();return;
@@ -456,12 +469,41 @@ async function classReset(){O.decided=null;await Net.update(room(),{grabs:null,s
    全班搶牌：學生端
    ===================================================== */
 function enterStudent(code){subscribe(code,false,'class',renderStudent);ticker=setInterval(studentTick,250)}
+/* 老師請改名：記住處理過哪一次，重新整理也不會再跳出來 */
+const renamedAt=code=>{try{return Number(sessionStorage.getItem('fk-renamed-'+code))||0}catch(e){return 0}};
+function renameScreen(rn){
+ O.renaming=true;clearT();const old=cleanName(S.name);
+ $app.innerHTML=`<div class="scrollable" style="text-align:center"><div class="bar" style="padding:0"><span>房間 ${O.code}</span><button class="x-btn" id="quit">離開</button></div>
+ <h2 style="margin-top:36px">✏️ 老師請你換一個名字</h2>
+ <p class="res">原本的名字：${esc(old)||'（無）'}<br>換好就會回到房間，分數會保留</p>
+ <div class="lbl" style="text-align:left">新的暱稱（最多 ${NAME_MAX} 個字，請勿輸入真實全名）<span id="ncnt" style="float:right"></span></div>
+ <input id="name" maxlength="${NAME_MAX*2}" autocomplete="off">
+ <button class="go" id="ok">換好了，回到房間</button><p class="note" id="err" hidden></p></div>`;
+ bindNameInput($('name'),$('ncnt'));$('name').focus();
+ const err=m=>{$('err').hidden=false;$('err').textContent=m};
+ $('quit').onclick=()=>{if(O)O.renaming=false;leaveOnline()};
+ $('ok').onclick=async()=>{
+  const name=cleanName($('name').value);
+  if(!name)return err('請輸入新的暱稱');
+  if(name===old)return err('要換一個和原本不一樣的名字');
+  if(!O)return;const code=O.code;$('ok').disabled=true;
+  try{
+   await Net.set(`rooms/${code}/players/${Net.uid}`,{name,ready:false,joinedAt:Net.TS});
+   Net.onDisconnectRemove(`rooms/${code}/players/${Net.uid}`);
+   try{sessionStorage.setItem('fk-renamed-'+code,String(rn))}catch(e){}
+   S.name=name;save();
+   if(O&&O.code===code){O.renaming=false;O.sig='';clearT();ticker=setInterval(studentTick,250);O.render()}
+  }catch(e){$('ok').disabled=false;err('送出失敗：'+(e.message||e))}
+ };
+}
 function myRank(){const r=rankList(),i=r.findIndex(x=>x.pid===Net.uid);return i<0?'-':i+1}
 function renderStudent(){
  if(!O||!O.game||!O.meta)return;
  const st=O.game.state,sig=signature();if(sig===O.sig)return;O.sig=sig;
  const me=O.players?.[Net.uid],score=O.scores?.[Net.uid]||0,total=Object.keys(O.players||{}).length;
- if(!me&&st!=='end'){/* 斷線被清掉後自動重新加入；被老師移出的不重加 */const code=O.code;if(!O.rejoining){O.rejoining=true;Net.get(`rooms/${code}/kicked/${Net.uid}`).then(k=>{if(!k&&O&&O.code===code)Net.set(`rooms/${code}/players/${Net.uid}`,{name:S.name||'玩家',ready:false,joinedAt:Net.TS});if(O)O.rejoining=false})}return}
+ const rn=O.rename?.[Net.uid];
+ if(rn&&!me&&rn!==renamedAt(O.code)){if(!O.renaming)renameScreen(rn);return}
+ if(!me&&st!=='end'){/* 斷線被清掉後自動重新加入；被老師移出的不重加 */const code=O.code;if(!O.rejoining){O.rejoining=true;Net.get(`rooms/${code}/kicked/${Net.uid}`).then(k=>{if(!k&&O&&O.code===code)Net.set(`rooms/${code}/players/${Net.uid}`,{name:cleanName(S.name)||'玩家',ready:false,joinedAt:Net.TS});if(O)O.rejoining=false})}return}
  if(st==='lobby'){
   $app.innerHTML=`<div class="scrollable" style="text-align:center"><div class="bar" style="padding:0"><span>房間 ${O.code}</span><button class="x-btn" id="quit">離開</button></div>
   <h2 style="margin-top:40px">已加入！</h2><div class="code" style="font-size:40px">${esc(me?.name)}</div>

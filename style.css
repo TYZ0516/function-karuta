@@ -115,7 +115,11 @@ h2{font-size:28px;line-height:1.15;margin:8px 0;font-weight:800}
 @media (max-width:760px){.host,.lobby-host{grid-template-columns:1fr;overflow:auto}}
 /* 放大鏡與提示 */
 [data-kick]{cursor:pointer}
-.plist span.arm,.board li.arm{background:var(--bad)!important;color:#fff}
+.go.bad{background:var(--bad);color:#fff;margin-top:10px}
+.go small{display:block;font-size:13px;font-weight:600;opacity:.8}
+#pmenu{position:fixed;inset:0;z-index:55;display:flex;align-items:center;justify-content:center;background:rgba(10,12,8,.7);padding:16px}
+#pmenu .pm-box{background:var(--ground);border-radius:18px;padding:20px 22px;width:min(380px,92vw);box-shadow:0 10px 40px rgba(0,0,0,.5)}
+#pmenu .pm-name{font-size:30px;font-weight:800;text-align:center;word-break:break-all}
 .foot{margin-top:26px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.8;color:var(--muted)}
 .foot a{color:var(--A)}
 #zoom{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(10,12,8,.75)}
