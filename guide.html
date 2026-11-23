@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#191f12">
+<title>函數歌牌｜給老師的使用說明</title>
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;800&display=swap" rel="stylesheet">
+<style>
+:root{--ground:#2f3b24;--edge:#191f12;--paper:#f3efe2;--muted:#c9c4ae;--A:#f2b134;--card:#fbf7ec;--ink:#22201a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--edge);color:var(--paper);font:17px/1.75 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.wrap{max-width:760px;margin:0 auto;background:var(--ground);min-height:100vh;padding:28px clamp(18px,5vw,48px) 60px}
+h1{font-size:clamp(34px,6vw,48px);line-height:1.1;margin:8px 0 6px;font-weight:800}
+h2{font-size:24px;margin:40px 0 10px;font-weight:800;padding-top:14px;border-top:1px solid rgba(255,255,255,.12)}
+h3{font-size:18px;margin:22px 0 6px;color:var(--A)}
+p,li{color:var(--paper)}
+.lead{color:var(--muted);font-size:18px}
+a{color:var(--A)}
+.btn{display:inline-block;margin:14px 8px 0 0;padding:12px 22px;border-radius:12px;background:var(--A);color:var(--ink);font-weight:800;text-decoration:none}
+.btn.alt{background:var(--paper)}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0;padding:0;list-style:none}
+.toc a{display:inline-block;padding:4px 12px;border-radius:999px;background:rgba(0,0,0,.3);text-decoration:none;font-size:15px}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.12);vertical-align:top}
+th{color:var(--muted);font-weight:500}
+.box{background:rgba(0,0,0,.28);border-radius:14px;padding:14px 18px;margin:14px 0}
+.box.warn{border-left:0;outline:2px solid var(--A)}
+code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:6px;font-size:15px}
+ol li,ul li{margin:4px 0}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);font-size:14px;color:var(--muted);line-height:1.9}
+@media(max-width:600px){table{font-size:14px}th,td{padding:6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a href="./">← 回到函數歌牌</a>
+<h1>函數歌牌<br>給老師的使用說明</h1>
+<p class="lead">看函數，搶下對應的圖形牌。用手機就能玩，學生不用註冊帳號，專為程度較弱的班級（學習扶助、原民班等）設計。</p>
+<a class="btn" href="./">開始使用</a><a class="btn alt" href="#self-host">外校老師：自己架一份</a>
+<ul class="toc"><li><a href="#what">遊戲內容</a></li><li><a href="#modes">四種模式</a></li><li><a href="#class">全班搶牌流程</a></li><li><a href="#tips">教學建議</a></li><li><a href="#faq">常見問題</a></li><li><a href="#self-host">自架一份</a></li><li><a href="#license">授權</a></li></ul>
+
+<h2 id="what">遊戲內容</h2>
+<p>畫面上方出現一個函數，下方有 6 張圖形牌，學生要搶到正確的那一張。其他 5 張是「干擾牌」，大多只和正解差<strong>一個特徵</strong>（例如只有頂點左右相反），逼學生一項一項檢查，不能只看大概的形狀。</p>
+<table>
+<tr><th>關卡</th><th>函數形式</th><th>要判斷的特徵</th></tr>
+<tr><td>第 1 關</td><td>y = ax + b</td><td>斜率正負、陡或緩（以 y = ±x 虛線為基準）、y 截距</td></tr>
+<tr><td>第 2 關</td><td>y = a(x − h)² + k</td><td>開口方向、頂點（特別是 h 的正負號）</td></tr>
+<tr><td>第 3 關</td><td>y = ax² + bx + c</td><td>開口方向、y 截距 c、對稱軸 x = −b/2a</td></tr>
+<tr><td>第 4 關</td><td>y = a(x − h)³ + k</td><td>走向、對稱中心</td></tr>
+<tr><td>第 5 關</td><td>y = a(x − h)³ + p(x − h) + k</td><td>走向、峰谷（a、p 異號才有峰谷）、對稱中心</td></tr>
+<tr><td>綜合</td><td>五關隨機混合</td><td>—</td></tr>
+</table>
+<p>學生搶錯時，系統會說明錯在哪裡，例如「這張是『頂點 x = 2』，題目是『頂點 x = −2』」。一局結束後，會統計每個人「判斷錯最多的特徵」。</p>
+<p>操作：<strong>輕點牌＝搶牌；長按牌＝放大看清楚</strong>（放開不算搶）。</p>
+
+<h2 id="modes">四種模式</h2>
+<table>
+<tr><th>模式</th><th>網路</th><th>適合</th></tr>
+<tr><td>單人挑戰電腦</td><td>不用</td><td>自主練習。電腦有烏龜／兔子／獵豹三種速度；二次一般式要配方，電腦會多給一倍時間。</td></tr>
+<tr><td>同機雙人</td><td>不用</td><td>手機平放桌上，上下各一半，兩人面對面搶。沒有網路的教室也能玩。</td></tr>
+<tr><td>線上 1 對 1</td><td>要</td><td>一人開房間，拿到 4 位數代碼給對手輸入。依伺服器時間判定誰先搶到。</td></tr>
+<tr><td>全班搶牌</td><td>要</td><td>老師用電腦投影開房，全班同時搶，有即時排行榜，類似 Kahoot。</td></tr>
+</table>
+
+<h2 id="class">全班搶牌上課流程</h2>
+<ol>
+<li>電腦接投影機，打開網站 → 選關卡 →「全班搶牌」。需要的話，可以先打開「作答時間寬鬆 ×1.5」。</li>
+<li>投影幕出現房間代碼和 QR code。學生用手機相機掃描，輸入暱稱加入。<strong>請提醒學生不要輸入真實全名。</strong></li>
+<li>如果有人取了不當的暱稱：<strong>在投影幕上點他的名字，3 秒內再點一次</strong>，就會把他移出房間，他也不能再用同一支手機進來。</li>
+<li>按「開始」。每題作答時間：一次 20 秒、二次標準式 30 秒、二次一般式 60 秒、三次基本 30 秒、三次魔王 45 秒。全部的人都作答，或時間到，就會公布答案；也可以按「提早結束這題」。</li>
+<li>每人每題只能搶一次，作答時不顯示對錯。答對的人依速度得 500～1000 分，全班最快答對的再加 100 分。</li>
+<li>公布答案時，投影幕會顯示<strong>每張牌各有幾個人選</strong>，以及最多人錯選的那張錯在哪裡，可以當場講解。</li>
+<li>10 題結束後，顯示前三名、完整排名，以及<strong>全班最常判斷錯的地方</strong>。按「關閉房間」會刪除這個房間的資料。</li>
+</ol>
+
+<h2 id="tips">教學建議</h2>
+<ul>
+<li>先用「單人挑戰電腦」的烏龜速度熟悉操作，再進到對戰。</li>
+<li>首頁的「判斷步驟提示」會在題目下方列出要看哪些特徵（例如「① a 的正負 → 開口　② 頂點 (h, k)」），對程度較弱的學生很有幫助。熟練後可以關掉。</li>
+<li>一次函數的 y = ±x 虛線，是讓學生判斷陡或緩的基準，熟練後也可以關掉。</li>
+<li>公布答案時，「最多人錯選」的那張牌最值得講，通常就是全班共同的迷思（例如 x − h 的正負號）。</li>
+<li>最後的「全班最常判斷錯的地方」可以拍照留存，作為下一堂課的複習重點。</li>
+</ul>
+
+<h2 id="faq">常見問題</h2>
+<h3>學生要註冊帳號嗎？會蒐集個資嗎？</h3>
+<p>不用註冊。系統用匿名登入，只存學生自己輸入的暱稱和作答紀錄，關閉房間後就會刪除。</p>
+<h3>學生連不進來？</h3>
+<p>有些校園網路會擋即時連線服務，請在教室先用學校 Wi-Fi 測試；被擋的話，可以改用手機熱點。如果用 LINE 掃 QR code，網頁會開在 LINE 裡面，請改用「以預設瀏覽器開啟」。</p>
+<h3>同時有好幾個班在用，會不會塞爆？</h3>
+<div class="box warn">這個網站用的是 Firebase 免費方案，<strong>整個網站同時最多 100 個連線，所有使用的老師共用</strong>。一兩個班同時使用沒問題，三個班以上同時開全班搶牌，後面加入的學生就會連不上。
+<br><br>如果你的學校要經常在課堂上使用，<strong>建議照下面的步驟自己架一份</strong>，用量就是你們學校自己的，大約 20 分鐘可以完成，也是免費的。</div>
+<h3>怎麼加到手機主畫面？</h3>
+<p>Android（Chrome）：右上角 ⋮ →「加到主畫面」或「安裝應用程式」。iPhone（Safari）：下方分享鈕 →「加入主畫面」。之後打開就是全螢幕。</p>
+<h3>沒有網路可以玩嗎？</h3>
+<p>單人挑戰電腦和同機雙人只要網頁載入過就能玩，不需要連線。</p>
+
+<h2 id="self-host">外校老師：自己架一份</h2>
+<p>需要：一個 Google 帳號（建 Firebase）和一個 GitHub 帳號（放網頁），都免費。</p>
+<ol>
+<li>到 <a href="https://github.com/tyz0516/function-karuta" target="_blank" rel="noopener">GitHub 原始碼頁面</a> 點右上角「Fork」複製一份到自己的帳號；或點綠色「Code → Download ZIP」下載所有檔案。</li>
+<li>照原始碼頁面上的 <strong>README</strong> 操作：建立 Firebase 專案 → 開啟匿名登入 → 建立 Realtime Database（地區選 asia-southeast1）→ 貼上 <code>database.rules.json</code> 的安全規則 → 把自己的設定碼貼進 <code>config.js</code>。</li>
+<li>在自己的 repository 開啟 GitHub Pages（Settings → Pages → main / root）。</li>
+<li>回 Firebase，把 <code>你的帳號.github.io</code> 加進 Authentication 的「授權網域」。</li>
+</ol>
+<p>完成後就有一個你們學校自己的網址，用量和資料都和這個網站分開。架設時遇到問題，歡迎來信詢問。</p>
+
+<h2 id="license">授權與聯絡</h2>
+<p>本遊戲採用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant" target="_blank" rel="noopener">創用 CC 姓名標示－非商業性－相同方式分享 4.0 國際（CC BY-NC-SA 4.0）</a> 授權：</p>
+<ul>
+<li>可以自由使用、複製、修改，用在任何教學場合。</li>
+<li>請註明出處：「函數歌牌，新北市立樹林高中 數學科」。</li>
+<li>不可用於商業用途。</li>
+<li>改作後的版本請用相同授權分享。</li>
+</ul>
+<p>遊戲玩法的靈感來自日本的「數學歌牌」，本網站的程式與牌面都是原創設計。</p>
+<footer>製作：新北市立樹林高中 數學科<br>聯絡與回饋：<a href="mailto:t1072@slsh.ntpc.edu.tw">t1072@slsh.ntpc.edu.tw</a><br>有任何建議、發現錯誤的題目，或是自架時遇到困難，都歡迎來信。</footer>
+</div>
+</body>
+</html>

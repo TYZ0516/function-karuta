@@ -73,7 +73,8 @@ function home(){
  <button class="tg" id="tHint"><span>顯示判斷步驟提示</span><span></span></button>
  <button class="tg" id="tRef"><span>一次函數牌面加 y = ±x 虛線</span><span></span></button>
  <button class="tg" id="tSlow"><span>全班搶牌：作答時間寬鬆 ×1.5</span><span></span></button>
- <p class="rules">輕點牌＝搶牌；長按牌＝放大看清楚，放開不算搶。搶錯（お手つき）這題就不能再搶。</p></div>`;
+ <p class="rules">輕點牌＝搶牌；長按牌＝放大看清楚，放開不算搶。搶錯（お手つき）這題就不能再搶。</p>
+ <footer class="foot"><a href="guide.html">給老師的使用說明</a><br>製作：新北市立樹林高中 數學科<br>聯絡：<a href="mailto:t1072@slsh.ntpc.edu.tw">t1072@slsh.ntpc.edu.tw</a><br>授權：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>（可自由使用與改作，請註明出處、不可商用）</footer></div>`;
  const paint=()=>{
   document.querySelectorAll('#lvs .lv').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.level));
   document.querySelectorAll('#speed button').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.speed));
@@ -215,8 +216,9 @@ function leaveOnline(silent){
 async function newCode(){for(let i=0;i<30;i++){const c=String(R(1000,9999));if(!(await Net.get(`rooms/${c}/meta`)))return c}throw new Error('找不到空的房間代碼')}
 function subscribe(code,host,type,render){
  O={code,host,type,render,unsubs:[],meta:null,game:null,players:{},scores:{},grabs:{},stats:{},sig:''};
- ['meta','game','players','scores','grabs','stats'].forEach(k=>O.unsubs.push(Net.on(`rooms/${code}/${k}`,v=>{
+ ['kicked','meta','game','players','scores','grabs','stats'].forEach(k=>O.unsubs.push(Net.on(`rooms/${code}/${k}`,v=>{
   if(!O)return;
+  if(k==='kicked'&&v&&v[Net.uid]&&!O.host){O.unsubs.forEach(u=>u());O=null;clearT();toast('你已被老師移出房間');return home()}
   if(k==='meta'&&v===null&&O.meta&&!O.host){O.unsubs.forEach(u=>u());O=null;toast('房間已經關閉');return home()}
   O[k]=v||(k==='meta'||k==='game'?null:{});
   O.render();
@@ -258,6 +260,7 @@ function nameScreen(kind,code=''){
 async function joinRoom(code,name){
  const meta=await Net.get(`rooms/${code}/meta`);
  if(!meta)throw new Error('找不到這個房間，請確認代碼');
+ if(await Net.get(`rooms/${code}/kicked/${Net.uid}`))throw new Error('你已被老師移出這個房間');
  if(meta.type==='duel'){
   const ps=await Net.get(`rooms/${code}/players`)||{};
   if(Object.keys(ps).length>=2&&!ps[Net.uid])throw new Error('這個房間已經滿了');
@@ -370,7 +373,15 @@ async function createClass(){
  }catch(e){toast('開房失敗：'+(e.message||e))}
 }
 const joinURL=()=>location.origin+location.pathname+'?'+(Net.mode==='mock'?'mock=1&':'')+'room='+O.code;
-function boardHTML(n=8){const r=rankList();return r.length?`<ol class="board">${r.slice(0,n).map(x=>`<li><span>${esc(x.name)}</span>${x.score}</li>`).join('')}</ol>`:'<p class="res">還沒有人加入</p>'}
+function boardHTML(n=8){const r=rankList();return r.length?`<ol class="board">${r.slice(0,n).map(x=>`<li data-kick="${x.pid}" class="${O.kickArm===x.pid?'arm':''}"><span>${esc(x.name)}${O.kickArm===x.pid?'　再點一次移出':''}</span>${x.score}</li>`).join('')}</ol><p class="res" style="font-size:13px">點名字可以移出不當暱稱的人</p>`:'<p class="res">還沒有人加入</p>'}
+/* 老師移出學生：點一下準備，3 秒內再點一次才真的移出 */
+function bindKick(){
+ $app.querySelectorAll('[data-kick]').forEach(el=>el.onclick=()=>{
+  const pid=el.dataset.kick;
+  if(O.kickArm===pid){O.kickArm=null;Net.update(room(),{[`kicked/${pid}`]:true,[`players/${pid}`]:null});toast('已移出 '+playerName(pid))}
+  else{O.kickArm=pid;O.sig='';renderHost();clearTimeout(O.kickT);O.kickT=setTimeout(()=>{if(O&&O.kickArm===pid){O.kickArm=null;O.sig='';renderHost()}},3000)}
+ });
+}
 function renderHost(){
  if(!O||!O.game||!O.meta)return;
  const st=O.game.state,sig=signature(st==='play'?Object.keys(O.grabs?.[O.game.qn]||{}).length:0);if(sig===O.sig)return;O.sig=sig;
@@ -378,10 +389,10 @@ function renderHost(){
  if(st==='lobby'){
   $app.innerHTML=`<div class="lobby-host"><div style="text-align:center"><div class="stat">用手機加入全班搶牌</div><div class="code">${O.code}</div><div id="qr"></div><div class="url">${esc(joinURL())}</div></div>
   <div><div class="stat">${lvInfo(O.meta.level).name}・${O.meta.total} 題${O.meta.slow?'・時間寬鬆':''}</div><div class="res" style="margin:6px 0">已加入 ${names.length} 人</div>
-  <div class="plist">${names.map(p=>`<span>${esc(p.name)}</span>`).join('')}</div>
+  <div class="plist">${Object.entries(O.players||{}).map(([pid,p])=>`<span data-kick="${pid}" class="${O.kickArm===pid?'arm':''}">${esc(p.name)}${O.kickArm===pid?'　再點一次移出':''}</span>`).join('')}</div>${names.length?'<p class="res" style="font-size:13px">點名字可以移出不當暱稱的人</p>':''}
   <button class="go" id="start" ${names.length?'':'disabled'}>開始</button><button class="go alt" id="quit">關閉房間</button></div></div>`;
   try{if(window.QRCode)new QRCode($('qr'),{text:joinURL(),width:220,height:220});else $('qr').remove()}catch(e){$('qr').remove()}
-  $('start').onclick=hostNextQ;$('quit').onclick=()=>leaveOnline();return;
+  $('start').onclick=hostNextQ;$('quit').onclick=()=>leaveOnline();bindKick();return;
  }
  if(st==='end'){
   const r=rankList(),agg={};Object.values(O.stats||{}).forEach(s=>Object.entries(s).forEach(([k,v])=>agg[k]=(agg[k]||0)+v));
@@ -401,7 +412,7 @@ function renderHost(){
   <div style="flex:1;display:flex;align-items:center;justify-content:center"><div style="text-align:center"><div style="font-size:clamp(60px,9vw,120px);font-weight:800;line-height:1">${n}<span style="font-size:.4em;color:var(--muted)"> / ${total}</span></div><div class="stat">已出手</div></div></div>
   <button class="go alt" id="early" style="max-width:340px">提早結束這題</button></div>
   <div class="right"><div class="stat">排行榜</div>${boardHTML()}</div></div>`;
-  $('early').onclick=classReveal;hostTick();return;
+  $('early').onclick=classReveal;bindKick();hostTick();return;
  }
  /* reveal */
  const cnt=O.game.counts||[],first=O.game.first;
@@ -411,7 +422,7 @@ function renderHost(){
  <div class="gridwrap"><div class="grid">${[0,1,2,3,4,5].map(ci=>cardHTML(q,ci,{cls:q.cards[ci].ans?'win':'',tag:`<div class="cnt">${cnt[ci]||0} 人</div>`})).join('')}</div></div>
  <div class="fb" style="font-size:18px">${topWrong?`最多人錯選的牌（${topWrong.n} 人）：${topWrong.c.d.map(d=>`「${d.mine}」，正確是「${d.want}」`).join('；')}`:'沒有人選錯！'}</div></div>
  <div class="right"><div class="stat">排行榜</div>${boardHTML()}<button class="go" id="nx">${qn>=O.meta.total?'看最終結果':'下一題'} ▶</button></div></div>`;
- $('nx').onclick=hostNextQ;refit();
+ $('nx').onclick=hostNextQ;bindKick();refit();
 }
 function hostTick(){
  if(!O||O.type!=='class'||!O.host||!O.game||O.game.state!=='play'||typeof O.game.startAt!=='number')return;
@@ -450,7 +461,7 @@ function renderStudent(){
  if(!O||!O.game||!O.meta)return;
  const st=O.game.state,sig=signature();if(sig===O.sig)return;O.sig=sig;
  const me=O.players?.[Net.uid],score=O.scores?.[Net.uid]||0,total=Object.keys(O.players||{}).length;
- if(!me&&st!=='end'){/* 被移除或斷線後重新加入 */Net.set(room(`players/${Net.uid}`),{name:S.name||'玩家',ready:false,joinedAt:Net.TS});return}
+ if(!me&&st!=='end'){/* 斷線被清掉後自動重新加入；被老師移出的不重加 */const code=O.code;if(!O.rejoining){O.rejoining=true;Net.get(`rooms/${code}/kicked/${Net.uid}`).then(k=>{if(!k&&O&&O.code===code)Net.set(`rooms/${code}/players/${Net.uid}`,{name:S.name||'玩家',ready:false,joinedAt:Net.TS});if(O)O.rejoining=false})}return}
  if(st==='lobby'){
   $app.innerHTML=`<div class="scrollable" style="text-align:center"><div class="bar" style="padding:0"><span>房間 ${O.code}</span><button class="x-btn" id="quit">離開</button></div>
   <h2 style="margin-top:40px">已加入！</h2><div class="code" style="font-size:40px">${esc(me?.name)}</div>
