@@ -1,0 +1,25 @@
+{
+  "rules": {
+    "rooms": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && data.exists() && data.child('meta/hostId').val() === auth.uid",
+        "meta": {
+          ".write": "auth != null && !data.exists() && newData.child('hostId').val() === auth.uid"
+        },
+        "players": {
+          "$pid": {
+            ".write": "auth != null && $pid === auth.uid"
+          }
+        },
+        "grabs": {
+          "$qn": {
+            "$pid": {
+              ".write": "auth != null && $pid === auth.uid && !data.exists()"
+            }
+          }
+        }
+      }
+    }
+  }
+}
