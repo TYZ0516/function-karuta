@@ -82,7 +82,10 @@ function cardSVG(lv,P,ref){
  for(const v of[-4,-2,2,4]){const t=v<0?M+(-v):v;s+=`<text x="${v}" y="1.3" font-size="1.3" font-weight="700" text-anchor="middle" fill="#5f594a" font-family="sans-serif" paint-order="stroke" stroke="#fbf7ec" stroke-width=".35">${t}</text><text x="-.3" y="${-v+.45}" font-size="1.3" font-weight="700" text-anchor="end" fill="#5f594a" font-family="sans-serif" paint-order="stroke" stroke="#fbf7ec" stroke-width=".35">${t}</text>`}
  if(ref&&lv===1)s+='<line x1="-5.6" y1="5.6" x2="5.6" y2="-5.6" stroke="#9a937e" stroke-width=".14" stroke-dasharray=".45 .3"/><line x1="-5.6" y1="-5.6" x2="5.6" y2="5.6" stroke="#9a937e" stroke-width=".14" stroke-dasharray=".45 .3"/>';
  let d='';for(let x=-5.6;x<=5.61;x+=0.04){let y=f(x);y=Math.max(-40,Math.min(40,y));d+=(d?'L':'M')+x.toFixed(2)+' '+(-y).toFixed(2)}
- s+=`<path d="${d}" fill="none" stroke="${col}" stroke-width=".36" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+ s+=`<path d="${d}" fill="none" stroke="${col}" stroke-width=".36" stroke-linejoin="round" stroke-linecap="round"/>`;
+ /* 三次函數：標出對稱中心 (h, k) */
+ if(lv>=4)s+=`<circle cx="${P.h}" cy="${-P.k}" r=".38" fill="${col}" stroke="#fbf7ec" stroke-width=".16"/>`;
+ s+='</svg>';
  return s;
 }
 
