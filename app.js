@@ -78,7 +78,8 @@ function home(){
  <button class="tg" id="tRef"><span>一次函數牌面加 y = ±x 虛線</span><span></span></button>
  <button class="tg" id="tSlow"><span>全班搶牌：作答時間寬鬆 ×1.5</span><span></span></button>
  <p class="rules">輕點牌＝搶牌；長按牌＝放大看清楚，放開不算搶。搶錯（お手つき）這題就不能再搶。</p>
- <footer class="foot"><a href="guide.html">給老師的使用說明</a><br>製作：新北市立樹林高中 田育澤<br>聯絡：<a href="mailto:t1072@slsh.ntpc.edu.tw">t1072@slsh.ntpc.edu.tw</a><br>授權：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>（可自由使用與改作，請註明出處、不可商用）</footer></div>`;
+ <footer class="foot"><a href="guide.html">給老師的使用說明</a><br>製作：新北市立樹林高中 田育澤<br>聯絡：<a href="mailto:t1072@slsh.ntpc.edu.tw">t1072@slsh.ntpc.edu.tw</a><br>授權：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>（可自由使用與改作，請註明出處、不可商用）<br>版本 v${esc(window.APP_VERSION||'')}・<a href="#" id="showLog">更新紀錄</a></footer></div>`;
+ const sl=$('showLog');if(sl)sl.onclick=e=>{e.preventDefault();showUpdates(true)};
  const paint=()=>{
   document.querySelectorAll('#lvs .lv').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.level));
   document.querySelectorAll('#speed button').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.speed));
@@ -556,9 +557,26 @@ function studentTick(){
 }
 
 /* ---------- 啟動 ---------- */
+/* ---------- 版本通知 ---------- */
+const vnum=v=>String(v).split('.').map(Number);
+const vgt=(a,b)=>{const x=vnum(a),y=vnum(b);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0}return false};
+function showUpdates(all){
+ const log=window.CHANGELOG||[],cur=window.APP_VERSION;if(!cur||!log.length)return;
+ let seen=null;try{seen=localStorage.getItem('fk-seen-version')}catch(e){}
+ const list=all?log:log.filter(x=>!seen||vgt(x.v,seen)).slice(0,seen?99:1);
+ if(!list.length)return;
+ const box=document.createElement('div');box.className='vmodal';
+ box.innerHTML=`<div class="vcard" role="dialog" aria-label="更新內容"><div class="vhead">目前版本 v${esc(cur)}</div>
+ ${list.map(x=>`<div class="vsec"><b>v${esc(x.v)}</b><span>${esc(x.date||'')}</span><ul>${x.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div>`).join('')}
+ <button class="go" id="vok">知道了</button></div>`;
+ document.body.appendChild(box);
+ const close=()=>{try{localStorage.setItem('fk-seen-version',cur)}catch(e){}box.remove()};
+ box.querySelector('#vok').onclick=close;box.addEventListener('click',e=>{if(e.target===box)close()});
+}
+
 (async()=>{
  await Net.init();
  const code=new URLSearchParams(location.search).get('room');
- if(code&&Net.mode)nameScreen('join',code);else home();
+ if(code&&Net.mode)nameScreen('join',code);else{home();showUpdates(false)}
 })();
 }

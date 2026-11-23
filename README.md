@@ -71,6 +71,7 @@
 | `index.html` | 網頁本體 |
 | `style.css` | 外觀 |
 | `levels.js` | 五個關卡的出題、干擾牌、牌面繪製 |
+| `version.js` | 版本號與更新紀錄（打開首頁時跳出的通知） |
 | `app.js` | 各種模式的遊戲流程 |
 | `net.js` | 連線（Firebase／本機測試） |
 | `config.js` | **要填** Firebase 設定（自架時換成你自己的） |

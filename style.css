@@ -128,3 +128,11 @@ h2{font-size:28px;line-height:1.15;margin:8px 0;font-weight:800}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--paper);color:var(--ink);padding:10px 16px;border-radius:12px;font-weight:800;max-width:90vw;text-align:center}
 #toast[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* 版本通知 */
+.vmodal{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(10,12,8,.72)}
+.vcard{width:min(440px,100%);max-height:82vh;overflow:auto;background:var(--edge);border:2px solid var(--A);border-radius:16px;padding:18px 20px}
+.vhead{font-size:22px;font-weight:800;color:var(--A);margin-bottom:6px}
+.vsec{margin-top:10px}.vsec b{font-size:17px}.vsec span{margin-left:8px;font-size:13px;color:var(--muted)}
+.vsec ul{margin:4px 0 0;padding-left:20px;font-size:15px;line-height:1.6}
+.vcard .go{margin-top:16px}
