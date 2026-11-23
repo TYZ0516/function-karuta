@@ -353,7 +353,7 @@ function hostNextQ(){
  if(qn>O.meta.total){Net.update(room('game'),{state:'end'});return}
  const q=makeQ(O.meta.level);
  const g={state:'play',qn,q:pack(q),startAt:Net.TS,winner:null};
- if(O.type==='class'){const lim=CLASS_LIMIT[q.lv]*(O.meta.slow?1.5:1);g.limit=Math.round(lim*1000)}
+ if(O.type==='class'){const lim=CLASS_LIMIT[q.lv]*(O.meta.slow?1.5:1);g.limit=Math.round(lim*1000);g.base=g.limit;g.extra=0}
  Net.set(room('game'),g);
 }
 async function duelReset(){
@@ -423,9 +423,9 @@ function renderHost(){
   <div class="qbox"><div class="eq">${esc(q.eq)}</div><div class="hint" style="font-size:18px">${S.hint?q.L.hint:''}</div></div>
   <div class="timer"><i id="tbar"></i></div><div class="stat" id="tleft"></div>
   <div style="flex:1;display:flex;align-items:center;justify-content:center"><div style="text-align:center"><div style="font-size:clamp(60px,9vw,120px);font-weight:800;line-height:1">${n}<span style="font-size:.4em;color:var(--muted)"> / ${total}</span></div><div class="stat">已出手</div></div></div>
-  <button class="go alt" id="early" style="max-width:340px">提早結束這題</button></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="go" id="more" style="max-width:260px;margin-top:0">＋15 秒</button><button class="go alt" id="early" style="max-width:260px;margin-top:0">提早結束這題</button></div></div>
   <div class="right"><div class="stat">排行榜</div>${boardHTML()}</div></div>`;
-  $('early').onclick=classReveal;bindKick();hostTick();return;
+  $('early').onclick=classReveal;$('more').onclick=addTime;bindKick();hostTick();return;
  }
  /* reveal */
  const cnt=O.game.counts||[],first=O.game.first;
@@ -440,9 +440,17 @@ function renderHost(){
 function hostTick(){
  if(!O||O.type!=='class'||!O.host||!O.game||O.game.state!=='play'||typeof O.game.startAt!=='number')return;
  const left=Math.max(0,O.game.startAt+O.game.limit-Net.now()),b=$('tbar'),t=$('tleft');
- if(b)b.style.width=(left/O.game.limit*100)+'%';if(t)t.textContent=`剩 ${Math.ceil(left/1000)} 秒`;
+ if(b)b.style.width=(left/O.game.limit*100)+'%';if(t)t.textContent=`剩 ${Math.ceil(left/1000)} 秒`+(O.game.extra?`（已加時 ${O.game.extra*15} 秒）`:'');
  if(left<=0)classReveal();
 }
+/* 老師加時：每按一次 +15 秒。計分仍以原本的時間為準，加時後才答對的人拿基本分 500，不會因為等比較久而扣更多 */
+function addTime(){
+ if(!O||!O.host||!O.game||O.game.state!=='play')return;
+ if(O.game.startAt+O.game.limit-Net.now()<=0)return;
+ Net.update(room('game'),{limit:O.game.limit+15000,extra:(O.game.extra||0)+1});
+ toast('已加時 15 秒');
+}
+document.addEventListener('keydown',e=>{if((e.key==='+'||e.key==='=')&&O&&O.host&&O.type==='class')addTime()});
 function classHostCheck(){
  const g=O.game;if(!g||g.state!=='play')return;
  const ids=Object.keys(O.players||{}),gr=O.grabs?.[g.qn]||{};
@@ -455,7 +463,7 @@ function classReveal(){
  const up={},results={},counts=[0,0,0,0,0,0];let first=null;
  all.forEach(x=>{
   counts[x.ci]++;const ok=q.cards[x.ci].ans;let pts=0;
-  if(ok){const frac=Math.max(0,1-(x.t-g.startAt)/g.limit);pts=Math.round((500+500*frac)/10)*10;if(!first){first=x.pid;pts+=100}}
+  if(ok){const frac=Math.max(0,1-(x.t-g.startAt)/(g.base||g.limit));pts=Math.round((500+500*frac)/10)*10;if(!first){first=x.pid;pts+=100}}
   else q.cards[x.ci].d.forEach(d=>{up[`stats/${x.pid}/${d.l}`]=(O.stats?.[x.pid]?.[d.l]||0)+1});
   results[x.pid]={ok,pts,ci:x.ci,first:first===x.pid};
   if(pts)up[`scores/${x.pid}`]=(O.scores?.[x.pid]||0)+pts;
@@ -534,7 +542,13 @@ function renderStudent(){
  else h=`<div class="t bad">搶錯了</div>${wrongText(q,res.ci)}<br>目前第 ${myRank()} 名`;
  $('fb').innerHTML=h;$('quit').onclick=()=>leaveOnline();
  if(!reveal&&!mine)attachGrab($('grid'),grabOnline);
- studentTick();refit();
+ noticeExtra();studentTick();refit();
+}
+function noticeExtra(){
+ const g=O.game;if(!g||g.state!=='play')return;
+ const seen=O.seenExtra&&O.seenExtra.qn===g.qn?O.seenExtra.n:0;
+ if((g.extra||0)>seen){if(!myGrab())toast('老師加時 15 秒，慢慢想，不要亂猜！');}
+ O.seenExtra={qn:g.qn,n:g.extra||0};
 }
 function studentTick(){
  if(!O||O.type!=='class'||O.host||!O.game||O.game.state!=='play'||typeof O.game.startAt!=='number')return;
