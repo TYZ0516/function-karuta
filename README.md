@@ -83,7 +83,7 @@ Firebase 免費方案（Spark）同時連線上限是 100，一班 30～40 人�
 
 ## 授權與聯絡
 
-採用 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant) 授權：可以自由使用與改作，請註明出處「函數歌牌，新北市立樹林高中 數學科」，不可商用，改作請用相同授權分享。
+採用 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant) 授權：可以自由使用與改作，請註明出處「函數歌牌，新北市立樹林高中 田育澤」，不可商用，改作請用相同授權分享。
 
 遊戲玩法的靈感來自日本的「數學歌牌」，程式與牌面都是原創設計。
 

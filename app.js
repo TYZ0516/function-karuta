@@ -74,7 +74,7 @@ function home(){
  <button class="tg" id="tRef"><span>一次函數牌面加 y = ±x 虛線</span><span></span></button>
  <button class="tg" id="tSlow"><span>全班搶牌：作答時間寬鬆 ×1.5</span><span></span></button>
  <p class="rules">輕點牌＝搶牌；長按牌＝放大看清楚，放開不算搶。搶錯（お手つき）這題就不能再搶。</p>
- <footer class="foot"><a href="guide.html">給老師的使用說明</a><br>製作：新北市立樹林高中 數學科<br>聯絡：<a href="mailto:t1072@slsh.ntpc.edu.tw">t1072@slsh.ntpc.edu.tw</a><br>授權：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>（可自由使用與改作，請註明出處、不可商用）</footer></div>`;
+ <footer class="foot"><a href="guide.html">給老師的使用說明</a><br>製作：新北市立樹林高中 田育澤<br>聯絡：<a href="mailto:t1072@slsh.ntpc.edu.tw">t1072@slsh.ntpc.edu.tw</a><br>授權：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hant" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>（可自由使用與改作，請註明出處、不可商用）</footer></div>`;
  const paint=()=>{
   document.querySelectorAll('#lvs .lv').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.level));
   document.querySelectorAll('#speed button').forEach(b=>b.classList.toggle('on',+b.dataset.v===S.speed));
